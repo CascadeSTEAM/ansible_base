@@ -1,0 +1,7 @@
+---
+- name: Ping all hosts found in inventory
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Ping the host
+      ansible.builtin.ping:
