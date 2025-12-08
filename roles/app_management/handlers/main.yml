@@ -1,0 +1,7 @@
+---
+# Application Management Role - Handlers
+
+- name: update snap store
+  ansible.builtin.command: snap refresh
+  changed_when: false
+  ignore_errors: true

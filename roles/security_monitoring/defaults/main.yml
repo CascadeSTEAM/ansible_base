@@ -1,0 +1,10 @@
+---
+# Security Monitoring Role - Default Variables
+
+ufw_enabled: true
+fail2ban_enabled: true
+fail2ban_max_retry: 5
+allowed_services:
+  - OpenSSH
+monitor_users: true
+log_security_events: true

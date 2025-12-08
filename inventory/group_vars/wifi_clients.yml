@@ -1,0 +1,22 @@
+# Group variables for WiFi clients
+---
+# Devices connected via public WiFi - treat as untrusted until verified
+
+# Default to minimal access
+ansible_connection: ssh
+ansible_ssh_timeout: 10
+
+# No automatic updates for unknown WiFi devices
+auto_updates: false
+unattended_upgrades: false
+
+# Monitoring and detection
+monitor_for_compliance: true
+require_registration: true
+
+# Security
+trust_level: low
+restricted_access: true
+
+# These systems should be checked for authorization
+check_authorization: true

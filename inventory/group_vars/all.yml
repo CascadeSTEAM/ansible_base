@@ -1,0 +1,36 @@
+# Group variables for all hosts
+---
+# Connection settings
+ansible_user: ansible
+ansible_become: true
+ansible_become_method: sudo
+ansible_python_interpreter: /usr/bin/python3
+
+# SSH settings
+ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+
+# Timezone
+timezone: America/Los_Angeles
+
+# Common packages for all systems
+common_packages:
+  - vim
+  - curl
+  - wget
+  - git
+  - htop
+  - net-tools
+  - openssh-server
+  - python3
+  - python3-pip
+
+# Security settings
+ufw_enabled: true
+fail2ban_enabled: true
+
+# Logging
+syslog_server: "10.0.0.30"
+
+# Update settings
+auto_reboot: false
+auto_reboot_time: "03:00"

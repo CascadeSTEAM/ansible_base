@@ -1,0 +1,81 @@
+# Group variables for lab systems
+---
+# These are public-use lab systems available to makerspace members
+# They need to be resilient, automatically maintained, and reset regularly
+
+# Update settings
+auto_updates: true
+update_schedule: "03:00"  # 3 AM daily
+unattended_upgrades: true
+auto_reboot: true
+auto_reboot_time: "03:30"
+
+# Lab system software
+lab_packages:
+  # Development tools
+  - build-essential
+  - cmake
+  - git
+  - gitg
+  
+  # Programming languages and IDEs
+  - python3
+  - python3-pip
+  - python3-venv
+  - idle3
+  - nodejs
+  - npm
+  
+  # Electronics and CAD
+  - kicad
+  - arduino
+  - fritzing
+  
+  # 3D modeling and slicing
+  - blender
+  - freecad
+  - prusa-slicer
+  - cura
+  
+  # Graphics and design
+  - gimp
+  - inkscape
+  - krita
+  
+  # Media tools
+  - vlc
+  - audacity
+  - obs-studio
+  
+  # Educational
+  - scratch
+  
+  # Utilities
+  - vim
+  - code  # VS Code
+
+# Desktop settings
+desktop_environment: xfce
+enable_guest_session: false
+lock_settings: false
+
+# Public access settings
+public_access: true
+reset_on_logout: false  # Set to true if you want to reset user profiles
+user_quotas_enabled: true
+
+# Monitoring
+send_alerts: true
+alert_email: "admin@makerspace.local"
+
+# Security (more permissive for lab use)
+stricter_firewall: false
+allowed_services:
+  - ssh
+
+# Backup (not typically needed for lab systems)
+backup_enabled: false
+
+# Usage tracking
+track_usage: true
+usage_log: "/var/log/lab-usage.log"

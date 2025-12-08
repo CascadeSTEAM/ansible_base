@@ -1,0 +1,118 @@
+# Technitium DNS Inventory Configuration
+# This is a static/semi-dynamic inventory that can be used with Technitium DNS
+# For full dynamic integration, you would need a custom inventory script
+# 
+# Technitium DNS API endpoint: http://technitium-server:5380/api
+# This configuration assumes you have exported DNS records or use API integration
+
+# Example: If using a custom script for Technitium API integration
+# Place your script at: inventory/dynamic/technitium_dns.py
+#
+# The script should:
+# 1. Query Technitium DNS API (/api/zones/records/get)
+# 2. Parse A, AAAA, and PTR records
+# 3. Output Ansible inventory JSON format
+#
+# Environment variables needed:
+# - TECHNITIUM_SERVER: DNS server address (e.g., dns.example.com)
+# - TECHNITIUM_API_TOKEN: API token for authentication
+
+# For now, we'll use a YAML inventory with DNS-discovered systems
+# Update this based on your Technitium DNS zone exports
+
+---
+all:
+  children:
+    technitium_managed:
+      hosts:
+        # Area lead systems (registered in DNS)
+        lead-creative.local:
+          ansible_host: 192.168.1.10
+          role: area_lead
+          area: creative
+        lead-woodshop.local:
+          ansible_host: 192.168.1.11
+          role: area_lead
+          area: woodshop
+        lead-electronics.local:
+          ansible_host: 192.168.1.12
+          role: area_lead
+          area: electronics
+        lead-3dprinting.local:
+          ansible_host: 192.168.1.13
+          role: area_lead
+          area: 3dprinting
+        
+        # Lab systems (registered in DNS)
+        lab-station-01.local:
+          ansible_host: 192.168.2.10
+          role: lab_system
+          lab_type: public
+        lab-station-02.local:
+          ansible_host: 192.168.2.11
+          role: lab_system
+          lab_type: public
+        lab-station-03.local:
+          ansible_host: 192.168.2.12
+          role: lab_system
+          lab_type: public
+        lab-station-04.local:
+          ansible_host: 192.168.2.13
+          role: lab_system
+          lab_type: public
+        lab-station-05.local:
+          ansible_host: 192.168.2.14
+          role: lab_system
+          lab_type: public
+        
+        # Datacenter systems
+        proxmox-01.local:
+          ansible_host: 10.0.0.10
+          role: datacenter
+          service: virtualization
+        nas-01.local:
+          ansible_host: 10.0.0.20
+          role: datacenter
+          service: storage
+        fw-01.local:
+          ansible_host: 10.0.0.1
+          role: datacenter
+          service: firewall
+      
+      vars:
+        ansible_user: ansible
+        ansible_become: true
+        dns_managed: true
+        
+    # Group definitions from DNS-managed hosts
+    area_leads:
+      hosts:
+        lead-creative.local:
+        lead-woodshop.local:
+        lead-electronics.local:
+        lead-3dprinting.local:
+      vars:
+        update_schedule: "02:00"
+        auto_updates: true
+        
+    lab_systems:
+      hosts:
+        lab-station-01.local:
+        lab-station-02.local:
+        lab-station-03.local:
+        lab-station-04.local:
+        lab-station-05.local:
+      vars:
+        update_schedule: "03:00"
+        auto_updates: true
+        public_access: true
+        
+    datacenter:
+      hosts:
+        proxmox-01.local:
+        nas-01.local:
+        fw-01.local:
+      vars:
+        update_schedule: "04:00"
+        auto_updates: false
+        critical_infrastructure: true

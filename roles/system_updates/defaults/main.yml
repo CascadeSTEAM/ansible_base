@@ -1,0 +1,8 @@
+---
+# System Updates Role - Default Variables
+
+apt_cache_valid_time: 3600
+upgrade_type: dist
+unattended_upgrades: false
+auto_reboot: false
+auto_reboot_time: "03:00"

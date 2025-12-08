@@ -1,0 +1,37 @@
+# Group variables for datacenter systems
+---
+# Critical infrastructure systems - handle with care
+
+# Update settings (more conservative)
+auto_updates: false  # Manual updates preferred for critical systems
+update_schedule: "04:00"  # 4 AM if enabled
+unattended_upgrades: false
+auto_reboot: false
+
+# Minimal additional packages
+datacenter_packages:
+  - monitoring-plugins
+  - nagios-nrpe-server
+  - snmpd
+
+# Monitoring (critical)
+send_alerts: true
+alert_email: "sysadmin@makerspace.local"
+alert_priority: high
+
+# Backup settings
+backup_enabled: true
+backup_schedule: "00:00"  # Midnight
+backup_retention_days: 30
+
+# Security (very strict)
+stricter_firewall: true
+fail2ban_enabled: true
+fail2ban_max_retry: 3
+
+allowed_services:
+  - ssh
+
+# High availability settings
+critical_infrastructure: true
+maintenance_window: "Sunday 04:00-06:00"

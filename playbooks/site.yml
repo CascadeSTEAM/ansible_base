@@ -1,0 +1,42 @@
+---
+# Master playbook for SOHO infrastructure management
+# This playbook orchestrates all maintenance tasks
+
+- name: SOHO Infrastructure Management
+  hosts: localhost
+  gather_facts: false
+  
+  tasks:
+    - name: Display playbook start
+      ansible.builtin.debug:
+        msg: |
+          ========================================
+          SOHO Infrastructure Management
+          Starting at {{ ansible_date_time.iso8601 | default('N/A') }}
+          ========================================
+
+- name: Refresh Dynamic Inventory
+  ansible.builtin.import_playbook: refresh_inventory.yml
+
+- name: Detect Unknown Systems
+  ansible.builtin.import_playbook: detect_unknown_systems.yml
+
+- name: Update Ubuntu Systems
+  ansible.builtin.import_playbook: ubuntu_auto_update.yml
+
+- name: Install/Update Applications
+  ansible.builtin.import_playbook: install_applications.yml
+
+- name: Final Summary
+  hosts: localhost
+  gather_facts: false
+  
+  tasks:
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg: |
+          ========================================
+          SOHO Infrastructure Management Complete
+          ========================================
+          All playbooks executed successfully.
+          Check logs in /var/log/ansible/ for details.

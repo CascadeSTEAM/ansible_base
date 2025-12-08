@@ -1,0 +1,49 @@
+# Proxmox VE Dynamic Inventory Plugin Configuration
+# This plugin queries Proxmox VE to discover VMs and containers
+# Useful for managing datacenter infrastructure
+
+plugin: community.general.proxmox
+url: https://proxmox.example.com:8006
+user: ansible@pve
+# Password should be stored in environment variable or vault
+# export PROXMOX_PASSWORD='your_password_here'
+validate_certs: false
+
+# Filter what to include
+want_facts: true
+want_proxmox_nodes_ansible_host: true
+
+# Group VMs/Containers by various attributes
+groups:
+  # Group by Proxmox node
+  proxmox_node_{{ proxmox_node }}: true
+  
+  # Group by VM status
+  proxmox_running: proxmox_status == "running"
+  proxmox_stopped: proxmox_status == "stopped"
+  
+  # Group by VM type
+  proxmox_qemu: proxmox_type == "qemu"
+  proxmox_lxc: proxmox_type == "lxc"
+  
+  # Custom groups for SOHO environment
+  datacenter: proxmox_tags is defined and 'datacenter' in proxmox_tags
+  lab_vms: proxmox_tags is defined and 'lab' in proxmox_tags
+  area_lead_vms: proxmox_tags is defined and 'area_lead' in proxmox_tags
+
+# Compose custom variables
+compose:
+  ansible_host: proxmox_ipconfig0.ip | default(proxmox_net0.ip) | default(proxmox_name)
+  ansible_user: ansible
+  proxmox_cores: proxmox_cores | default(1)
+  proxmox_memory_mb: (proxmox_maxmem / 1024 / 1024) | int
+
+# Keyed groups for dynamic organization
+keyed_groups:
+  - key: proxmox_tags | default([])
+    prefix: tag
+    separator: _
+  - key: proxmox_status
+    prefix: status
+  - key: proxmox_type
+    prefix: type

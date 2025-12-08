@@ -1,0 +1,41 @@
+---
+# System Updates Role - Main Tasks
+# Manages system updates and patching
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: "{{ apt_cache_valid_time }}"
+  when: ansible_distribution == "Ubuntu"
+
+- name: Install update management tools
+  ansible.builtin.apt:
+    name:
+      - unattended-upgrades
+      - apt-listchanges
+      - update-notifier-common
+    state: present
+  when: 
+    - ansible_distribution == "Ubuntu"
+    - unattended_upgrades | default(false)
+
+- name: Perform system upgrade
+  ansible.builtin.apt:
+    upgrade: "{{ upgrade_type }}"
+    autoremove: yes
+    autoclean: yes
+  register: upgrade_result
+  when: ansible_distribution == "Ubuntu"
+
+- name: Check if reboot is required
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: reboot_required_check
+
+- name: Create reboot notification
+  ansible.builtin.set_fact:
+    needs_reboot: "{{ reboot_required_check.stat.exists }}"
+
+- name: Log reboot requirement
+  ansible.builtin.debug:
+    msg: "System {{ inventory_hostname }} requires reboot: {{ needs_reboot }}"

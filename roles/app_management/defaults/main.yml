@@ -1,0 +1,9 @@
+---
+# Application Management Role - Default Variables
+
+enable_snap: false
+enable_flatpak: false
+snap_classic: true
+snap_apps: []
+flatpak_apps: []
+role_packages: []
