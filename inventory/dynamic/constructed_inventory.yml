@@ -1,0 +1,59 @@
+# Constructed Dynamic Inventory Plugin Configuration
+# This plugin allows creating groups and variables based on existing inventory
+# Useful for combining multiple inventory sources and creating logical groups
+
+plugin: constructed
+strict: False
+
+# Create groups based on gathered facts and inventory data
+groups:
+  # Operating system based groups
+  ubuntu_hosts: ansible_distribution is defined and ansible_distribution == "Ubuntu"
+  ubuntu_20: ansible_distribution is defined and ansible_distribution == "Ubuntu" and ansible_distribution_version == "20.04"
+  ubuntu_22: ansible_distribution is defined and ansible_distribution == "Ubuntu" and ansible_distribution_version == "22.04"
+  ubuntu_24: ansible_distribution is defined and ansible_distribution == "Ubuntu" and ansible_distribution_version == "24.04"
+  
+  # Role-based groups
+  area_leads: "'area_lead' in group_names or (tags is defined and 'area_lead' in tags)"
+  lab_systems: "'lab' in group_names or (tags is defined and 'lab' in tags)"
+  wifi_clients: "'wifi' in group_names or '192.168.1' in ansible_default_ipv4.address | default('')"
+  
+  # Known vs unknown systems
+  known_systems: inventory_hostname in groups.get('proxmox_running', []) or inventory_hostname in groups.get('statically_defined', [])
+  unknown_systems: inventory_hostname not in groups.get('known_systems', []) and inventory_hostname in groups.get('all', [])
+  
+  # Desktop systems (for updates and app installation)
+  desktop_systems: ansible_form_factor is defined and ansible_form_factor in ["Desktop", "Laptop"]
+  
+  # Systems requiring updates
+  needs_update: (ansible_distribution is defined and ansible_distribution == "Ubuntu") and (ansible_form_factor is defined and ansible_form_factor in ["Desktop", "Laptop"])
+
+# Compose custom variables for hosts
+compose:
+  # Set ansible connection parameters
+  ansible_connection: "'ssh'"
+  ansible_user: "'ansible'"
+  
+  # Custom facts for monitoring
+  is_known_system: inventory_hostname in groups.get('known_systems', [])
+  last_checked: "ansible_date_time.iso8601 | default('never')"
+  
+  # Network information
+  primary_ip: "ansible_default_ipv4.address | default('unknown')"
+  primary_mac: "ansible_default_ipv4.macaddress | default('unknown')"
+  
+  # System classification
+  system_type: |
+    'datacenter' if '10.0.0' in ansible_default_ipv4.address | default('') else
+    'lab' if '192.168.2' in ansible_default_ipv4.address | default('') else
+    'wifi_client' if '192.168.1' in ansible_default_ipv4.address | default('') else
+    'unknown'
+
+# Create keyed groups based on OS family
+keyed_groups:
+  - key: ansible_distribution | default('unknown')
+    prefix: os
+    separator: _
+  - key: ansible_distribution_version | default('unknown')
+    prefix: version
+    separator: _

@@ -1,0 +1,100 @@
+---
+# Playbook to automatically update Ubuntu Linux desktop systems
+# Configures unattended-upgrades and performs system updates
+
+- name: Configure and Run Ubuntu Automatic Updates
+  hosts: ubuntu_hosts
+  become: true
+  gather_facts: true
+  
+  vars:
+    update_cache_valid_time: 3600
+    reboot_required_file: /var/run/reboot-required
+    
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: "{{ update_cache_valid_time }}"
+      register: apt_cache_update
+      
+    - name: Install unattended-upgrades package
+      ansible.builtin.apt:
+        name:
+          - unattended-upgrades
+          - apt-listchanges
+          - update-notifier-common
+        state: present
+      when: auto_updates | default(false)
+      
+    - name: Configure unattended-upgrades
+      ansible.builtin.template:
+        src: 50unattended-upgrades.j2
+        dest: /etc/apt/apt.conf.d/50unattended-upgrades
+        owner: root
+        group: root
+        mode: '0644'
+      when: auto_updates | default(false)
+      
+    - name: Enable automatic updates
+      ansible.builtin.template:
+        src: 20auto-upgrades.j2
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        owner: root
+        group: root
+        mode: '0644'
+      when: auto_updates | default(false)
+      
+    - name: Perform full system upgrade
+      ansible.builtin.apt:
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes
+      register: system_upgrade
+      when:
+        - inventory_hostname in groups.get('area_leads', []) or inventory_hostname in groups.get('lab_systems', [])
+      
+    - name: Check if reboot is required
+      ansible.builtin.stat:
+        path: "{{ reboot_required_file }}"
+      register: reboot_required
+      
+    - name: Log systems requiring reboot
+      ansible.builtin.lineinfile:
+        path: /var/log/ansible/reboot_required.log
+        line: "{{ ansible_date_time.iso8601 }} - {{ inventory_hostname }} requires reboot after updates"
+        create: true
+      delegate_to: localhost
+      when: reboot_required.stat.exists
+      
+    - name: Reboot system if required and allowed
+      ansible.builtin.reboot:
+        msg: "Rebooting system after automatic updates"
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
+      when: 
+        - reboot_required.stat.exists
+        - auto_reboot | default(false)
+      
+    - name: Display update summary
+      ansible.builtin.debug:
+        msg: >
+          Updates completed for {{ inventory_hostname }}.
+          Packages updated: {{ system_upgrade.changed | default(false) }}.
+          Reboot required: {{ reboot_required.stat.exists }}.
+          Auto-reboot enabled: {{ auto_reboot | default(false) }}.
+
+- name: Update Summary Report
+  hosts: localhost
+  gather_facts: false
+  
+  tasks:
+    - name: Generate update summary
+      ansible.builtin.debug:
+        msg: |
+          Update run completed at {{ ansible_date_time.iso8601 | default('N/A') }}
+          Total hosts processed: {{ groups.get('ubuntu_hosts', []) | length }}
+          Check /var/log/ansible/reboot_required.log for systems needing reboot

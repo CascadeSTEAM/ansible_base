@@ -1,0 +1,12 @@
+---
+# Security Monitoring Role - Handlers
+
+- name: restart fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: restarted
+
+- name: reload ufw
+  ansible.builtin.systemd:
+    name: ufw
+    state: reloaded

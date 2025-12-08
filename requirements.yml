@@ -1,0 +1,15 @@
+# Ansible Collection Requirements
+# Install with: ansible-galaxy collection install -r requirements.yml
+
+collections:
+  # Community General Collection (includes proxmox, snap, flatpak, mail modules)
+  - name: community.general
+    version: ">=7.0.0"
+  
+  # Ansible POSIX Collection (includes authorized_key, firewall modules)
+  - name: ansible.posix
+    version: ">=1.5.0"
+  
+  # Ansible Network Collection (for network discovery and management)
+  - name: ansible.netcommon
+    version: ">=5.0.0"

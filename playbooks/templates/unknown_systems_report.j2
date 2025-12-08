@@ -1,0 +1,37 @@
+===================================================================
+UNKNOWN SYSTEMS DETECTED ON NETWORK
+Generated: {{ ansible_date_time.iso8601 }}
+===================================================================
+
+The following systems were detected on the network but are not
+registered in the inventory (DNS, Proxmox, or static configuration):
+
+{% if groups.get('unknown_systems', []) | length > 0 %}
+{% for host in groups.get('unknown_systems', []) %}
+Host #{{ loop.index }}:
+  Hostname: {{ host }}
+  IP Address: {{ hostvars[host].ansible_default_ipv4.address | default('N/A') }}
+  MAC Address: {{ hostvars[host].ansible_default_ipv4.macaddress | default('N/A') }}
+  Operating System: {{ hostvars[host].ansible_distribution | default('Unknown') }} {{ hostvars[host].ansible_distribution_version | default('') }}
+  Architecture: {{ hostvars[host].ansible_architecture | default('N/A') }}
+  System Type: {{ hostvars[host].system_type | default('Unknown') }}
+  First Detected: {{ ansible_date_time.iso8601 }}
+
+{% endfor %}
+
+TOTAL UNKNOWN SYSTEMS: {{ groups.get('unknown_systems', []) | length }}
+
+ACTION REQUIRED:
+1. Verify if these systems should be on the network
+2. For authorized systems, add them to the appropriate inventory:
+   - DNS (Technitium) for permanent systems
+   - Proxmox tags for VMs
+   - Static inventory for special cases
+3. For unauthorized systems, investigate and take appropriate action
+
+{% else %}
+No unknown systems detected. All network devices are recognized.
+{% endif %}
+
+===================================================================
+For questions, contact: {{ admin_email | default('admin@makerspace.local') }}

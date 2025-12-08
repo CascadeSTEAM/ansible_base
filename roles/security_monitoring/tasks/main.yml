@@ -1,0 +1,72 @@
+---
+# Security Monitoring Role - Main Tasks
+# Monitors systems for compliance and security issues
+
+- name: Install monitoring tools
+  ansible.builtin.apt:
+    name:
+      - fail2ban
+      - ufw
+      - aide
+      - rkhunter
+      - logwatch
+    state: present
+    update_cache: yes
+  when: ansible_distribution == "Ubuntu"
+
+- name: Configure UFW firewall
+  community.general.ufw:
+    state: enabled
+    policy: deny
+  when: ufw_enabled | default(true)
+
+- name: Allow SSH through firewall
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Allow additional services
+  community.general.ufw:
+    rule: allow
+    name: "{{ item }}"
+  loop: "{{ allowed_services | default([]) }}"
+  when: allowed_services is defined
+
+- name: Configure fail2ban
+  ansible.builtin.copy:
+    dest: /etc/fail2ban/jail.local
+    content: |
+      [DEFAULT]
+      bantime = 3600
+      findtime = 600
+      maxretry = {{ fail2ban_max_retry | default(5) }}
+      
+      [sshd]
+      enabled = true
+      port = ssh
+      logpath = %(sshd_log)s
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart fail2ban
+  when: fail2ban_enabled | default(true)
+
+- name: Start and enable fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: started
+    enabled: yes
+  when: fail2ban_enabled | default(true)
+
+- name: Get system users information
+  ansible.builtin.getent:
+    database: passwd
+
+- name: Filter regular users (UID 1000-65533)
+  ansible.builtin.set_fact:
+    regular_users: "{{ getent_passwd.keys() | select('match', '^(?!nobody).*') | list }}"
+  when: getent_passwd is defined
+
+- name: Log system users
+  ansible.builtin.debug:
+    msg: "Current users on {{ inventory_hostname }}: {{ regular_users | default([]) }}"

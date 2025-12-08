@@ -1,0 +1,64 @@
+---
+# Application Management Role - Main Tasks
+# Manages application installation and updates
+
+- name: Update package cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  when: ansible_distribution == "Ubuntu"
+
+- name: Install common applications
+  ansible.builtin.apt:
+    name: "{{ common_packages }}"
+    state: present
+  when: common_packages is defined
+
+- name: Install role-specific packages
+  ansible.builtin.apt:
+    name: "{{ role_packages }}"
+    state: present
+  when: role_packages is defined
+  failed_when: false
+  register: role_pkg_install
+
+- name: Install snap package manager
+  ansible.builtin.apt:
+    name: snapd
+    state: present
+  when: enable_snap | default(false)
+
+- name: Install snap applications
+  community.general.snap:
+    name: "{{ item }}"
+    classic: "{{ snap_classic | default(true) }}"
+  loop: "{{ snap_apps | default([]) }}"
+  when: enable_snap | default(false)
+  ignore_errors: true
+
+- name: Install flatpak package manager
+  ansible.builtin.apt:
+    name: flatpak
+    state: present
+  when: enable_flatpak | default(false)
+
+- name: Add Flathub repository
+  community.general.flatpak_remote:
+    name: flathub
+    state: present
+    flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+  when: enable_flatpak | default(false)
+  ignore_errors: true
+
+- name: Install flatpak applications
+  community.general.flatpak:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ flatpak_apps | default([]) }}"
+  when: enable_flatpak | default(false)
+  ignore_errors: true
+
+- name: Clean up unused packages
+  ansible.builtin.apt:
+    autoremove: yes
+    autoclean: yes

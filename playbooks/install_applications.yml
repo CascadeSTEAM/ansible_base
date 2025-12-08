@@ -1,0 +1,150 @@
+---
+# Playbook to install applications on Ubuntu desktop systems
+# Installs different application sets based on system role
+
+- name: Install Applications on Ubuntu Systems
+  hosts: ubuntu_hosts
+  become: true
+  gather_facts: true
+  
+  vars:
+    # Snap packages that need special handling
+    snap_packages:
+      - code
+      - slack
+    
+    # Flatpak packages
+    flatpak_packages:
+      - org.blender.Blender
+      - com.obsproject.Studio
+      
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+        
+    - name: Install common packages for all systems
+      ansible.builtin.apt:
+        name: "{{ common_packages }}"
+        state: present
+      when: common_packages is defined
+      
+    - name: Install area lead specific packages
+      ansible.builtin.apt:
+        name: "{{ area_lead_packages }}"
+        state: present
+      when: 
+        - inventory_hostname in groups.get('area_leads', [])
+        - area_lead_packages is defined
+      ignore_errors: true  # Some packages might not be available in all repos
+      
+    - name: Install lab system specific packages
+      ansible.builtin.apt:
+        name: "{{ lab_packages }}"
+        state: present
+      when:
+        - inventory_hostname in groups.get('lab_systems', [])
+        - lab_packages is defined
+      ignore_errors: true
+      
+    - name: Add third-party repositories (if needed)
+      ansible.builtin.apt_repository:
+        repo: "{{ item }}"
+        state: present
+        update_cache: no
+      loop:
+        - "ppa:kicad/kicad-7.0-releases"  # KiCAD
+        - "ppa:graphics-drivers/ppa"      # Graphics drivers
+      when: inventory_hostname in groups.get('lab_systems', [])
+      ignore_errors: true
+      
+    - name: Update cache after adding repositories
+      ansible.builtin.apt:
+        update_cache: yes
+      when: inventory_hostname in groups.get('lab_systems', [])
+      
+    - name: Install snapd for snap packages
+      ansible.builtin.apt:
+        name: snapd
+        state: present
+      when: snap_packages is defined and snap_packages | length > 0
+      
+    - name: Install snap packages
+      community.general.snap:
+        name: "{{ item }}"
+        classic: true
+      loop: "{{ snap_packages }}"
+      when: 
+        - snap_packages is defined
+        - inventory_hostname in groups.get('area_leads', []) or 
+          inventory_hostname in groups.get('lab_systems', [])
+      ignore_errors: true
+      
+    - name: Install flatpak
+      ansible.builtin.apt:
+        name: flatpak
+        state: present
+      when: flatpak_packages is defined and flatpak_packages | length > 0
+      
+    - name: Add Flathub repository
+      community.general.flatpak_remote:
+        name: flathub
+        state: present
+        flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+      when: flatpak_packages is defined and flatpak_packages | length > 0
+      ignore_errors: true
+      
+    - name: Install flatpak packages
+      community.general.flatpak:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ flatpak_packages }}"
+      when:
+        - flatpak_packages is defined
+        - inventory_hostname in groups.get('lab_systems', [])
+      ignore_errors: true
+      
+    - name: Install Python packages via pip
+      ansible.builtin.pip:
+        name:
+          - ansible
+          - requests
+          - paramiko
+        state: present
+        executable: pip3
+      when: inventory_hostname in groups.get('lab_systems', [])
+      ignore_errors: true
+      
+    - name: Install Node.js packages globally
+      community.general.npm:
+        name: "{{ item }}"
+        global: yes
+      loop:
+        - npm
+        - yarn
+      when: inventory_hostname in groups.get('lab_systems', [])
+      ignore_errors: true
+      
+    - name: Clean up unused packages
+      ansible.builtin.apt:
+        autoremove: yes
+        autoclean: yes
+        
+    - name: Display installation summary
+      ansible.builtin.debug:
+        msg: |
+          Application installation completed for {{ inventory_hostname }}
+          System role: {{ 'area_lead' if inventory_hostname in groups.get('area_leads', []) else 'lab_system' if inventory_hostname in groups.get('lab_systems', []) else 'other' }}
+
+- name: Installation Summary Report
+  hosts: localhost
+  gather_facts: false
+  
+  tasks:
+    - name: Generate installation summary
+      ansible.builtin.debug:
+        msg: |
+          Application installation completed
+          Area lead systems: {{ groups.get('area_leads', []) | length }}
+          Lab systems: {{ groups.get('lab_systems', []) | length }}

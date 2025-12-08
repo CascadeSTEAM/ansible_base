@@ -1,0 +1,36 @@
+# NMAP Dynamic Inventory Plugin Configuration
+# This plugin scans the network using NMAP to discover hosts
+# Useful for discovering lab systems and unknown devices on the network
+
+plugin: nmap
+# Network ranges to scan
+# Adjust these to match your SOHO network topology
+strict: False
+address: 
+  - 192.168.1.0/24      # Main WiFi network
+  - 192.168.2.0/24      # Lab network
+  - 10.0.0.0/24         # Datacenter network
+
+# NMAP scan options
+# -sn: Ping scan (no port scan)
+# -T4: Aggressive timing for faster scans
+# --min-rate 100: Minimum packets per second
+options: '-sn -T4 --min-rate 100'
+
+# Group hosts based on their IP ranges
+groups:
+  wifi_clients: "'192.168.1' in inventory_hostname"
+  lab_systems: "'192.168.2' in inventory_hostname"
+  datacenter: "'10.0.0' in inventory_hostname"
+
+# Exclude specific IPs (router, APs, etc.)
+exclude:
+  - 192.168.1.1         # Router
+  - 192.168.1.2         # Access Point
+  - 192.168.2.1         # Lab Gateway
+  - 10.0.0.1            # Datacenter Gateway
+
+# Set custom facts for discovered hosts
+compose:
+  discovered_by: "'nmap'"
+  scan_timestamp: "ansible_date_time.iso8601"

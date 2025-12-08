@@ -1,0 +1,46 @@
+---
+# Playbook to refresh dynamic inventory sources
+# This ensures we have the latest network topology
+
+- name: Refresh Dynamic Inventory
+  hosts: localhost
+  gather_facts: true
+  
+  tasks:
+    - name: Display inventory refresh start
+      ansible.builtin.debug:
+        msg: "Refreshing dynamic inventory from all sources..."
+        
+    - name: Create inventory cache directory
+      ansible.builtin.file:
+        path: /tmp/ansible_inventory_cache
+        state: directory
+        mode: '0755'
+        
+    - name: Refresh NMAP inventory
+      ansible.builtin.command:
+        cmd: ansible-inventory -i inventory/dynamic/nmap_inventory.yml --list
+      register: nmap_inventory
+      changed_when: false
+      ignore_errors: true
+      
+    - name: Refresh Proxmox inventory
+      ansible.builtin.command:
+        cmd: ansible-inventory -i inventory/dynamic/proxmox_inventory.yml --list
+      register: proxmox_inventory
+      changed_when: false
+      ignore_errors: true
+      
+    - name: Refresh Constructed inventory
+      ansible.builtin.command:
+        cmd: ansible-inventory -i inventory/dynamic/constructed_inventory.yml --list
+      register: constructed_inventory
+      changed_when: false
+      ignore_errors: true
+      
+    - name: Display inventory summary
+      ansible.builtin.debug:
+        msg: |
+          Dynamic inventory refresh completed
+          Total inventory groups available: {{ groups.keys() | list | length }}
+          All hosts discovered: {{ groups.get('all', []) | length }}

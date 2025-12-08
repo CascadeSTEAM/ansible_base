@@ -1,0 +1,97 @@
+---
+# Playbook to detect and alert admins about unknown systems on the network
+# This should be run regularly (via cron) to monitor for unauthorized devices
+
+- name: Detect Unknown Systems
+  hosts: all
+  gather_facts: true
+  vars:
+    admin_email: "admin@makerspace.local"
+    alert_log: "/var/log/ansible/unknown_systems.log"
+    
+  tasks:
+    - name: Gather system facts
+      ansible.builtin.setup:
+        gather_subset:
+          - network
+          - hardware
+      
+    - name: Create alert log directory
+      ansible.builtin.file:
+        path: "{{ alert_log | dirname }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      run_once: true
+      
+    - name: Check if system is in known groups
+      ansible.builtin.set_fact:
+        is_known: "{{ 
+          inventory_hostname in groups.get('area_leads', []) or
+          inventory_hostname in groups.get('lab_systems', []) or
+          inventory_hostname in groups.get('datacenter', []) or
+          inventory_hostname in groups.get('technitium_managed', []) or
+          inventory_hostname in groups.get('proxmox_running', [])
+        }}"
+        
+    - name: Identify unknown systems
+      ansible.builtin.set_fact:
+        is_unknown: "{{ not is_known }}"
+        
+    - name: Add to unknown_systems group
+      ansible.builtin.group_by:
+        key: "{{ 'unknown_systems' if is_unknown else 'known_systems' }}"
+        
+    - name: Log unknown system details
+      ansible.builtin.lineinfile:
+        path: "{{ alert_log }}"
+        line: >
+          {{ ansible_date_time.iso8601 }} - UNKNOWN SYSTEM DETECTED: 
+          {{ inventory_hostname }} 
+          (IP: {{ ansible_default_ipv4.address | default('N/A') }}, 
+          MAC: {{ ansible_default_ipv4.macaddress | default('N/A') }},
+          OS: {{ ansible_distribution | default('Unknown') }} {{ ansible_distribution_version | default('') }})
+        create: true
+      delegate_to: localhost
+      when: is_unknown
+      
+    - name: Generate unknown systems report
+      ansible.builtin.template:
+        src: unknown_systems_report.j2
+        dest: /tmp/unknown_systems_report.txt
+      delegate_to: localhost
+      run_once: true
+      when: groups.get('unknown_systems', []) | length > 0
+
+- name: Alert Admins about Unknown Systems
+  hosts: localhost
+  gather_facts: false
+  vars:
+    admin_email: "admin@makerspace.local"
+    
+  tasks:
+    - name: Check if unknown systems were detected
+      ansible.builtin.stat:
+        path: /tmp/unknown_systems_report.txt
+      register: report_file
+      
+    - name: Send email alert to admins
+      community.general.mail:
+        host: localhost
+        port: 25
+        to: "{{ admin_email }}"
+        from: "ansible@makerspace.local"
+        subject: "ALERT: Unknown Systems Detected on Network"
+        body: "{{ lookup('file', '/tmp/unknown_systems_report.txt') }}"
+      when: report_file.stat.exists
+      ignore_errors: true  # Don't fail if email server is not configured
+      
+    - name: Display unknown systems summary
+      ansible.builtin.debug:
+        msg: "{{ groups.get('unknown_systems', []) | length }} unknown system(s) detected. Check {{ alert_log }} for details."
+      when: groups.get('unknown_systems', []) | length > 0
+      
+    - name: No unknown systems detected
+      ansible.builtin.debug:
+        msg: "All systems are recognized and authorized."
+      when: groups.get('unknown_systems', []) | length == 0

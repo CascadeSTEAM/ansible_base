@@ -1,0 +1,56 @@
+# Group variables for area lead systems
+---
+# These are computers used by area leads (makerspace managers)
+# They need stable, reliable systems with productivity tools
+
+# Update settings
+auto_updates: true
+update_schedule: "02:00"  # 2 AM daily
+unattended_upgrades: true
+auto_reboot: true
+auto_reboot_time: "02:30"
+
+# Priority software for area leads
+area_lead_packages:
+  # Office and productivity
+  - libreoffice
+  - libreoffice-gtk3
+  - gimp
+  - inkscape
+  
+  # Communication
+  - thunderbird
+  - slack-desktop
+  
+  # File management
+  - filezilla
+  - rclone
+  
+  # System tools
+  - gparted
+  - synaptic
+  
+  # Media
+  - vlc
+  - audacity
+
+# Desktop environment preferences
+desktop_environment: gnome
+enable_remote_desktop: true
+
+# Monitoring
+send_alerts: true
+alert_email: "leads@makerspace.local"
+
+# Backup settings
+backup_enabled: true
+backup_schedule: "01:00"  # 1 AM daily
+backup_destination: "nas-01.local:/backups/area-leads"
+
+# Security
+stricter_firewall: true
+allowed_services:
+  - ssh
+  - http
+  - https
+  - vnc

@@ -1,0 +1,41 @@
+// Configure automatic updates for Ubuntu
+// This file controls which updates are automatically installed
+
+Unattended-Upgrade::Allowed-Origins {
+    "${distro_id}:${distro_codename}";
+    "${distro_id}:${distro_codename}-security";
+    "${distro_id}ESMApps:${distro_codename}-apps-security";
+    "${distro_id}ESM:${distro_codename}-infra-security";
+    "${distro_id}:${distro_codename}-updates";
+};
+
+// List of packages to not update automatically
+Unattended-Upgrade::Package-Blacklist {
+    // Blacklist kernel updates to prevent boot issues
+    // "linux-";
+};
+
+// Automatically reboot if required
+Unattended-Upgrade::Automatic-Reboot "{{ auto_reboot | default('false') }}";
+
+// Reboot time (24-hour format)
+Unattended-Upgrade::Automatic-Reboot-Time "{{ auto_reboot_time | default('03:00') }}";
+
+// Email notification settings
+Unattended-Upgrade::Mail "{{ alert_email | default('admin@makerspace.local') }}";
+Unattended-Upgrade::MailReport "on-change";
+
+// Remove unused dependencies
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+
+// Automatically cleanup old kernel versions
+Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+
+// Enable logging
+Unattended-Upgrade::SyslogEnable "true";
+Unattended-Upgrade::SyslogFacility "daemon";
+
+// Verbose mode for debugging
+Unattended-Upgrade::Verbose "false";
+Unattended-Upgrade::Debug "false";
