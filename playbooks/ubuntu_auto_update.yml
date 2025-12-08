@@ -51,8 +51,8 @@
         autoremove: yes
         autoclean: yes
       register: system_upgrade
-      when: inventory_hostname in groups.get('area_leads', []) or 
-            inventory_hostname in groups.get('lab_systems', [])
+      when:
+        - inventory_hostname in groups.get('area_leads', []) or inventory_hostname in groups.get('lab_systems', [])
       
     - name: Check if reboot is required
       ansible.builtin.stat:

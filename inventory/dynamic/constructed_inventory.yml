@@ -19,7 +19,7 @@ groups:
   wifi_clients: "'wifi' in group_names or '192.168.1' in ansible_default_ipv4.address | default('')"
   
   # Known vs unknown systems
-  known_systems: inventory_hostname in groups.get('proxmox_running', []) or inventory_hostname in groups.get('staticly_defined', [])
+  known_systems: inventory_hostname in groups.get('proxmox_running', []) or inventory_hostname in groups.get('statically_defined', [])
   unknown_systems: inventory_hostname not in groups.get('known_systems', []) and inventory_hostname in groups.get('all', [])
   
   # Desktop systems (for updates and app installation)

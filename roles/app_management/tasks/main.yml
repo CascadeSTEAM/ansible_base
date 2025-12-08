@@ -19,7 +19,8 @@
     name: "{{ role_packages }}"
     state: present
   when: role_packages is defined
-  ignore_errors: true
+  failed_when: false
+  register: role_pkg_install
 
 - name: Install snap package manager
   ansible.builtin.apt:

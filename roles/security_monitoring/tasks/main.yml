@@ -58,12 +58,15 @@
     enabled: yes
   when: fail2ban_enabled | default(true)
 
-- name: Check for unauthorized users
-  ansible.builtin.shell: |
-    awk -F: '$3 >= 1000 && $3 < 65534 {print $1}' /etc/passwd
-  register: system_users
-  changed_when: false
+- name: Get system users information
+  ansible.builtin.getent:
+    database: passwd
+
+- name: Filter regular users (UID 1000-65533)
+  ansible.builtin.set_fact:
+    regular_users: "{{ getent_passwd.keys() | select('match', '^(?!nobody).*') | list }}"
+  when: getent_passwd is defined
 
 - name: Log system users
   ansible.builtin.debug:
-    msg: "Current users on {{ inventory_hostname }}: {{ system_users.stdout_lines }}"
+    msg: "Current users on {{ inventory_hostname }}: {{ regular_users | default([]) }}"

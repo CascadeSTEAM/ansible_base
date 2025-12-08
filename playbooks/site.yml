@@ -4,7 +4,7 @@
 
 - name: SOHO Infrastructure Management
   hosts: localhost
-  gather_facts: false
+  gather_facts: true
   
   tasks:
     - name: Display playbook start
@@ -12,7 +12,7 @@
         msg: |
           ========================================
           SOHO Infrastructure Management
-          Starting at {{ ansible_date_time.iso8601 | default('N/A') }}
+          Starting at {{ ansible_date_time.iso8601 }}
           ========================================
 
 - name: Refresh Dynamic Inventory
@@ -29,7 +29,7 @@
 
 - name: Final Summary
   hosts: localhost
-  gather_facts: false
+  gather_facts: true
   
   tasks:
     - name: Display completion message
@@ -37,6 +37,7 @@
         msg: |
           ========================================
           SOHO Infrastructure Management Complete
+          Completed at {{ ansible_date_time.iso8601 }}
           ========================================
           All playbooks executed successfully.
           Check logs in /var/log/ansible/ for details.
