@@ -1,0 +1,20 @@
+---
+- name: Nmap Network Search
+  hosts: localhost
+  tasks:
+    - name: Run a nmap
+      ansible.builtin.command: " {{ nmap_command }} "
+      register: nmap_output
+
+    - name: JSONize nmap output and save to variable
+      ansible.builtin.set_fact:
+        nmap_output_json: "{{ ls_output.stdout | ansible.utils.from_xml }}"
+
+    - name: Display the parsed JSON nmap scan
+      debug:
+        var: nmap_output_json
+
+    - name: Write the parsed json nmap scan to file
+      ansible.builtin.copy:
+        content: "{{ nmap_output_json }}"
+        dest: ../netmap.json

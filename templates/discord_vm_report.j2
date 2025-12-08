@@ -1,0 +1,22 @@
+{% for vm in vms %}
+## {{ vm.name }} ({{ vm.vmid }})
+
+**Status:** {{ '🟢' if vm.status == 'running' else '🔴' }} `{{ vm.status }}`
+**Node:** `{{ vm.node }}`
+**Type:** `{{ vm.type }}`
+{% if vm.pool is defined %}**Pool:** `{{ vm.pool }}`{% endif %}
+{% if vm.tags is defined %}**Tags:** `{{ vm.tags }}`{% endif %}
+
+### Resources
+**CPU Usage:** {{ "%.1f"|format(vm.cpu * 100) }}% of {{ vm.maxcpu }} cores
+**Memory:** {{ "%.2f"|format(vm.mem / 1024**3) }} GB / {{ "%.2f"|format(vm.maxmem / 1024**3) }} GB ({{ "%.1f"|format((vm.mem / vm.maxmem) * 100) }}%)
+**Disk:** {{ "%.2f"|format(vm.maxdisk / 1024**3) }} GB total
+{% if vm.balloon_min is defined %}**Balloon Min:** {{ "%.2f"|format(vm.balloon_min / 1024**3) }} GB{% endif %}
+
+### Network
+**Traffic In:** {{ "%.2f"|format(vm.netin / 1024**3) }} GB
+**Traffic Out:** {{ "%.2f"|format(vm.netout / 1024**3) }} GB
+
+### Uptime
+{{ (vm.uptime // 86400) }} days, {{ ((vm.uptime % 86400) // 3600) }} hours, {{ ((vm.uptime % 3600) // 60) }} minutes
+{% endfor %}
