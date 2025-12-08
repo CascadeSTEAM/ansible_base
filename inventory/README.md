@@ -1,0 +1,1 @@
+Place your inventory files in here.  Number them by priority. i.e. `10_nmap.yaml` and `90_constructed.yaml`
