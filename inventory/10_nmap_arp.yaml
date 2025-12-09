@@ -36,6 +36,6 @@ ipv6: false
 cache: true
 # Path to the cache file. If not specified, Ansible's default cache path is used.
 cache_plugin: jsonfile
-cache_connection: /tmp/ansible_nmap_cache.json
+cache_connection: /tmp/ansible_nmap_cache_arp.json
 # Cache timeout in seconds. After this time, the cache will be considered stale and a new scan will be performed.
 cache_timeout: 3600 # 1 hour before the scan will actively check again.
