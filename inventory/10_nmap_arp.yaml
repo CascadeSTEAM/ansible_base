@@ -1,12 +1,13 @@
 ---
 plugin: community.general.nmap
 
-arguments: -sn # Perform a ping scan (no port scan)
+# arguments: -sn # Perform a ping scan (no port scan)
 #arguments: "-sV -O --osscan-limit -oX -"
+arguments: -sn -PR -T4
 
 # Address or network range to scan using Nmap.
 # You can use CIDR notation (e.g., 192.168.1.0/24) or a range (e.g., 192.168.1.10-20).
-address: 192.168.88.0/24  # Scan a CIDR range
+# address: ANSIBLE_NMAP_ADDRESS  # Scan a CIDR range (currently environment based)
 # ports: 22,80,443        # Specify ports to scan (e.g., SSH, HTTP, HTTPS)
 # arguments: "-Pn"        # Nmap arguments (e.g., disable host discovery)
 
@@ -32,7 +33,7 @@ ipv6: false
 
 # Cache settings for the inventory plugin.
 # Set to 'true' to enable caching.
-cache: true
+cache: false
 # Path to the cache file. If not specified, Ansible's default cache path is used.
 cache_plugin: jsonfile
 cache_connection: /tmp/ansible_nmap_cache.json
