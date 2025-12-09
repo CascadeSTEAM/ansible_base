@@ -33,7 +33,7 @@ ipv6: false
 
 # Cache settings for the inventory plugin.
 # Set to 'true' to enable caching.
-cache: false
+cache: true
 # Path to the cache file. If not specified, Ansible's default cache path is used.
 cache_plugin: jsonfile
 cache_connection: /tmp/ansible_nmap_cache.json
