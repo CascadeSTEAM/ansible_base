@@ -3,7 +3,7 @@ plugin: community.general.nmap
 
 # arguments: -sn # Perform a ping scan (no port scan)
 #arguments: "-sV -O --osscan-limit -oX -"
-arguments: -sn -T4
+arguments: -sn -Pn -T4
 
 # Address or network range to scan using Nmap.
 # You can use CIDR notation (e.g., 192.168.1.0/24) or a range (e.g., 192.168.1.10-20).
@@ -36,6 +36,6 @@ ipv6: false
 cache: true
 # Path to the cache file. If not specified, Ansible's default cache path is used.
 cache_plugin: jsonfile
-cache_connection: /tmp/ansible_nmap_cache_ping.json
+cache_connection: /tmp/ansible_nmap_cache_noping.json
 # Cache timeout in seconds. After this time, the cache will be considered stale and a new scan will be performed.
 cache_timeout: 3600 # 1 hour before the scan will actively check again.
