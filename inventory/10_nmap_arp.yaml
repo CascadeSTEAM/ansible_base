@@ -1,0 +1,57 @@
+---
+# Purpose: Primary host discovery using ARP scanning
+# This inventory plugin performs ARP-based host discovery on the local network segment.
+# ARP scanning (-PR flag) is fast and reliable for detecting hosts on the same subnet,
+# as it operates at the data link layer and doesn't require ICMP responses.
+#
+# Discovery Method: ARP ping (-sn -PR)
+# - Most effective for local network discovery
+# - Works even when ICMP is blocked by firewalls
+# - Only discovers hosts on the same network segment (L2)
+#
+# Impact on Final Inventory:
+# - Hosts discovered here will be available in the merged inventory
+# - This scan runs first (prefix 10_) and should catch most local hosts
+# - Results are cached for 1 hour to improve performance
+# - Fails gracefully (strict: false) if hosts are unreachable
+
+plugin: community.general.nmap
+
+# arguments: -sn # Perform a ping scan (no port scan)
+# arguments: "-sV -O --osscan-limit -oX -"
+arguments: -sn -PR -T4
+
+# Address or network range to scan using Nmap.
+# You can use CIDR notation (e.g., 192.168.1.0/24) or a range (e.g., 192.168.1.10-20).
+# address: ANSIBLE_NMAP_ADDRESS  # Scan a CIDR range (currently environment based)
+# ports: 22,80,443        # Specify ports to scan (e.g., SSH, HTTP, HTTPS)
+# arguments: "-Pn"        # Nmap arguments (e.g., disable host discovery)
+
+# Set to 'true' to run Nmap with sudo, allowing for more comprehensive scans.
+# Be aware of the security implications of running Nmap with elevated privileges.
+sudo: false
+
+# If set to 'false', invalid entries (e.g., unreachable hosts) will be skipped instead of causing a fatal error.
+strict: false
+
+# List of addresses to exclude from the Nmap scan.
+# exclude:
+#  - 192.168.1.1 # Example: exclude the gateway
+
+# Enable or disable scanning for open ports. Set to 'false' for performance if only host discovery is needed.
+ports: false
+
+# Enable IPv4 scanning. At least one of ipv4 or ipv6 must be true.
+ipv4: true
+
+# Disable IPv6 scanning.
+ipv6: false
+
+# Cache settings for the inventory plugin.
+# Set to 'true' to enable caching.
+cache: true
+# Path to the cache file. If not specified, Ansible's default cache path is used.
+cache_plugin: jsonfile
+cache_connection: /tmp/ansible_nmap_cache_arp.json
+# Cache timeout in seconds. After this time, the cache will be considered stale and a new scan will be performed.
+cache_timeout: 3600 # 1 hour before the scan will actively check again.
