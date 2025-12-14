@@ -1,4 +1,21 @@
 ---
+# Purpose: Secondary host discovery without ping (fallback scan)
+# This inventory plugin discovers hosts that don't respond to ping/ARP requests.
+# The -Pn flag skips host discovery and treats all targets as online, which is useful
+# for detecting hosts with strict firewall rules or disabled ICMP/ARP responses.
+#
+# Discovery Method: No ping scan (-sn -Pn)
+# - Treats all specified hosts as "up" without initial discovery
+# - Useful for hosts that block ICMP echo requests
+# - Slower than ARP scanning but more comprehensive
+# - Can detect hosts missed by the ARP scan
+#
+# Impact on Final Inventory:
+# - Runs after ARP scan (prefix 11_) to catch any missed hosts
+# - Complements 10_nmap_arp.yaml by finding firewall-protected hosts
+# - Results are cached separately to avoid conflicts
+# - Together with ARP scan, provides comprehensive network coverage
+
 plugin: community.general.nmap
 
 # arguments: -sn # Perform a ping scan (no port scan)
