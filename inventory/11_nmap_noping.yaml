@@ -2,7 +2,7 @@
 plugin: community.general.nmap
 
 # arguments: -sn # Perform a ping scan (no port scan)
-#arguments: "-sV -O --osscan-limit -oX -"
+# arguments: "-sV -O --osscan-limit -oX -"
 arguments: -sn -Pn -T4
 
 # Address or network range to scan using Nmap.
