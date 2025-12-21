@@ -4,7 +4,7 @@
 # The -Pn flag skips host discovery and treats all targets as online, which is useful
 # for detecting hosts with strict firewall rules or disabled ICMP/ARP responses.
 #
-# Discovery Method: No ping scan (-sn -Pn)
+# Discovery Method: No port scan (-sn) with host discovery disabled (-Pn)
 # - Treats all specified hosts as "up" without initial discovery
 # - Useful for hosts that block ICMP echo requests
 # - Slower than ARP scanning but more comprehensive
