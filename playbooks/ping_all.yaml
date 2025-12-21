@@ -1,5 +1,6 @@
 ---
-- name: Checks connection to all hosts found in inventory
+# Checks connection to all hosts found in inventory
+- name: ping all
   hosts: all
   gather_facts: false
   tasks:
