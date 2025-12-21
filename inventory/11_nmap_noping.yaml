@@ -4,8 +4,9 @@
 # The -Pn flag skips host discovery and treats all targets as online, which is useful
 # for detecting hosts with strict firewall rules or disabled ICMP/ARP responses.
 #
-# Discovery Method: No ping scan (-sn -Pn)
-# - Treats all specified hosts as "up" without initial discovery
+# Discovery Method: No ping scan (-Pn)
+# - Skips host discovery phase and treats all targets as online
+# - Performs port scan to verify hosts are actually up
 # - Useful for hosts that block ICMP echo requests
 # - Slower than ARP scanning but more comprehensive
 # - Can detect hosts missed by the ARP scan
@@ -20,7 +21,7 @@ plugin: community.general.nmap
 
 # arguments: -sn # Perform a ping scan (no port scan)
 # arguments: "-sV -O --osscan-limit -oX -"
-arguments: -sn -Pn -T4
+arguments: -Pn -T4
 
 # Address or network range to scan using Nmap.
 # You can use CIDR notation (e.g., 192.168.1.0/24) or a range (e.g., 192.168.1.10-20).
@@ -40,7 +41,8 @@ strict: false
 #  - 192.168.1.1 # Example: exclude the gateway
 
 # Enable or disable scanning for open ports. Set to 'false' for performance if only host discovery is needed.
-ports: false
+# With -Pn flag, port scanning is necessary to verify hosts are actually up.
+ports: true
 
 # Enable IPv4 scanning. At least one of ipv4 or ipv6 must be true.
 ipv4: true
