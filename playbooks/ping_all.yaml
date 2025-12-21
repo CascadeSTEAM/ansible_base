@@ -1,0 +1,8 @@
+---
+# Checks connection to all hosts found in inventory
+- name: ping all
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Checks connection to hosts
+      ansible.builtin.ping:
